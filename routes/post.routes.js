@@ -2,9 +2,12 @@ const express = require("express")
 const postModel = require("../models/post.model")
 const postRouter = express.Router()
 const jwt = require("jsonwebtoken")
-
 postRouter.get("/",async(req,res)=>{
-    const queryObj = {}
+    const token  = req.headers.authorization
+    const {userId} = jwt.verify(token,"user")
+    const queryObj = {
+        userId:userId
+    }
     const limit = 3
     const {min,max,device1,device2,device,page} = req.query
     try {
@@ -38,17 +41,19 @@ postRouter.get("/:id",async(req,res)=>{
     const userId_in_note = notesData.userId
     try {
         if(userId===userId_in_note){
-            res.status(200).send({msg:"all posts",data:notesData})
+            res.status(200).send({msg:"single posts",data:notesData})
         }
     } catch (error) {
         res.status(400).send({msg:"error while fetching the posts data",error})
     }
 })
 postRouter.get("/top/:page",async(req,res)=>{
+    const token  = req.headers.authorization
+    const {userId} = jwt.verify(token,"user")
     const {page} = req.params
     const limit = 3
     try {
-        const data = await postModel.find({}).sort({no_of_comments:-1}).skip((Number(page)-1)*limit).limit(3)
+        const data = await postModel.find({userId}).sort({no_of_comments:-1}).skip((Number(page)-1)*limit).limit(3)
         res.status(200).send({"msg":"here is the all the posts data",data})
     } catch (error) {
         res.status(400).send({"msg":"error while fetching the requested data",error})
@@ -74,18 +79,18 @@ postRouter.patch("/update/:post_id",async(req,res)=>{
     const {userId} = jwt.verify(token,"user")
     const {post_id} = req.params
     // finding the note
-    const noteData = await postModel.findOne({_id:post_id})
+    const noteData = await notesModel.findOne({_id:post_id})
     const noteData_id = noteData.userId
     console.log(userId)
     console.log(noteData_id)
     try {
         if(noteData_id===userId){
             console.log("hi")
-            await postModel.findByIdAndUpdate(post_id,req.body)
-            res.status(200).send({msg:"post updated successfully"})    
+            await notesModel.findByIdAndUpdate(post_id,req.body)
+            res.status(200).send({msg:"note updated successfully"})    
         }
     } catch (error) {
-        res.status(400).send({msg:"post can't be updated",error})
+        res.status(400).send({msg:"note can't be updated",error})
     }
 })
 
@@ -97,15 +102,15 @@ postRouter.delete("/delete/:post_id",async(req,res)=>{
     const {userId} = jwt.verify(token,"user")
     const {post_id} = req.params
     // finding the note
-    const noteData = await postModel.findOne({_id:post_id})
+    const noteData = await notesModel.findOne({_id:post_id})
     const noteData_id = noteData.userId
     try {
         if(noteData_id===userId){
-            await postModel.findByIdAndDelete(post_id)
-            res.status(200).send({msg:"post deleted successfully"})
+            await notesModel.findByIdAndDelete(post_id)
+            res.status(200).send({msg:"note deleted successfully"})
         }
     } catch (error) {
-        res.status(400).send({msg:"post can't be deleted",error})
+        res.status(400).send({msg:"note can't be deleted",error})
     }
 })
 
