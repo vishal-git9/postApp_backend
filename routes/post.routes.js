@@ -79,14 +79,14 @@ postRouter.patch("/update/:post_id",async(req,res)=>{
     const {userId} = jwt.verify(token,"user")
     const {post_id} = req.params
     // finding the note
-    const noteData = await notesModel.findOne({_id:post_id})
+    const noteData = await postModel.findOne({_id:post_id})
     const noteData_id = noteData.userId
     console.log(userId)
     console.log(noteData_id)
     try {
         if(noteData_id===userId){
             console.log("hi")
-            await notesModel.findByIdAndUpdate(post_id,req.body)
+            await postModel.findByIdAndUpdate(post_id,req.body)
             res.status(200).send({msg:"note updated successfully"})    
         }
     } catch (error) {
@@ -102,11 +102,11 @@ postRouter.delete("/delete/:post_id",async(req,res)=>{
     const {userId} = jwt.verify(token,"user")
     const {post_id} = req.params
     // finding the note
-    const noteData = await notesModel.findOne({_id:post_id})
+    const noteData = await postModel.findOne({_id:post_id})
     const noteData_id = noteData.userId
     try {
         if(noteData_id===userId){
-            await notesModel.findByIdAndDelete(post_id)
+            await postModel.findByIdAndDelete(post_id)
             res.status(200).send({msg:"note deleted successfully"})
         }
     } catch (error) {
